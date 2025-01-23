@@ -1,0 +1,284 @@
+﻿@using SuperLigMatchSimulator.Classes
+@model WeekMatch
+
+<div class="container mx-auto p-2">
+	<div class="flex items-center justify-center space-x-4 mb-4">
+		<button id="prevWeekBtn" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">←</button>
+		<span id="currentWeek" class="text-xl font-bold text-gray-800">Week @Model.Week</span>
+		<button id="nextWeekBtn" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">→</button>
+	</div>
+
+	<div class="grid grid-cols-3 gap-2">
+		@foreach (var item in Model.Matches)
+		{
+			<div class="bg-white rounded shadow-sm p-2">
+				<div class="flex items-center justify-between">
+					<!-- Home Team -->
+					<div class="flex items-center space-x-1">
+						<img src="@item.HomeLogo" alt="@item.HomeTeam" class="w-8 h-8 object-contain" />
+						<div class="flex space-x-1">
+							<button onclick="updateScore('@item.MatchId', 'home', -1)"
+							@((item.HomeScore == null || item.HomeScore < 1) ? "disabled" : "")
+									class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs @((item.HomeScore == null || item.HomeScore < 1) ? "opacity-50 cursor-not-allowed" : "")">
+								-
+							</button>
+							<button onclick="updateScore('@item.MatchId', 'home', 1)"
+									class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs">
+								+
+							</button>
+						</div>
+					</div>
+
+					<!-- Score Display -->
+					<div class="flex items-center space-x-2">
+						<span id="homeScore-@item.MatchId" class="text-lg font-bold">@(item.HomeScore) </span>
+						<span class="text-lg font-bold text-gray-400">-</span>
+						<span id="awayScore-@item.MatchId" class="text-lg font-bold">@(item.AwayScore)</span>
+					</div>
+
+					<!-- Away Team -->
+					<div class="flex items-center space-x-1">
+						<div class="flex space-x-1">
+							<button onclick="updateScore('@item.MatchId', 'away', -1)"
+							@((item.AwayScore == null || item.AwayScore < 1) ? "disabled" : "")
+									class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs @((item.AwayScore == null || item.AwayScore < 1) ? "opacity-50 cursor-not-allowed" : "")">
+								-
+							</button>
+							<button onclick="updateScore('@item.MatchId', 'away', 1)"
+									class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs">
+								+
+							</button>
+						</div>
+						<img src="@item.AwayLogo" alt="@item.AwayTeam" class="w-8 h-8 object-contain" />
+					</div>
+				</div>
+
+				<form id="predictionForm-@item.MatchId" asp-action="SavePrediction" asp-controller="Match" method="post">
+					<input type="hidden" name="MatchId" value="@item.MatchId" />
+					<input type="hidden" id="hiddenHomeScore-@item.MatchId" name="HomeScore" value="@(item.HomeScore)" />
+					<input type="hidden" id="hiddenAwayScore-@item.MatchId" name="AwayScore" value="@(item.AwayScore)" />
+					<input type="hidden" name="HomeTeam" value="@item.HomeTeam" />
+					<input type="hidden" name="AwayTeam" value="@item.AwayTeam" />
+					<input type="hidden" name="HomeLogo" value="@item.HomeLogo" />
+					<input type="hidden" name="AwayLogo" value="@item.AwayLogo" />
+					<input type="hidden" name="Week" value="@Model.Week" />
+				</form>
+			</div>
+		}
+	</div>
+</div>
+
+@section Styles {
+	<style>
+		.match-prediction-container {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 20px;
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			margin-bottom: 20px;
+		}
+
+		.team-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.team-logo {
+			width: 64px;
+			height: 64px;
+			object-fit: contain;
+		}
+
+		.team-name {
+			font-weight: bold;
+			text-align: center;
+		}
+
+		.score-display {
+			font-size: 24px;
+			font-weight: bold;
+		}
+
+		.score-buttons {
+			display: flex;
+			gap: 8px;
+		}
+
+		.btn {
+			padding: 5px 15px;
+			border-radius: 4px;
+			border: none;
+			color: white;
+			cursor: pointer;
+		}
+
+		.btn-danger {
+			background-color: #dc3545;
+		}
+
+		.btn-success {
+			background-color: #28a745;
+		}
+
+		.btn-primary {
+			background-color: #007bff;
+			padding: 10px 20px;
+			margin-top: 10px;
+		}
+	</style>
+}
+
+<script>
+				function updateScore(matchId, team, change) {
+		const homeScoreElement = document.getElementById(`homeScore-${matchId}`);
+		const awayScoreElement = document.getElementById(`awayScore-${matchId}`);
+		const hiddenHomeScore = document.getElementById(`hiddenHomeScore-${matchId}`);
+		const hiddenAwayScore = document.getElementById(`hiddenAwayScore-${matchId}`);
+		const form = document.getElementById(`predictionForm-${matchId}`);
+
+		// Azaltma butonlarını seç
+		const homeMinusBtn = homeScoreElement.parentElement.previousElementSibling.querySelector('button:first-child');
+		const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySelector('button:first-child');
+
+		if (team === 'home') {
+			let newScore = parseInt(homeScoreElement.textContent) + change;
+			if (newScore >= 0) {
+				homeScoreElement.textContent = newScore;
+				hiddenHomeScore.value = newScore;
+
+				// Home azaltma butonu durumunu güncelle
+				if (newScore < 1) {
+					homeMinusBtn.disabled = true;
+					homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+				} else {
+					homeMinusBtn.disabled = false;
+					homeMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+				}
+			}
+			if(homeScoreElement.textContent=="") {
+				homeScoreElement.textContent=0;
+				hiddenHomeScore.value = 0;
+				awayScoreElement.textContent=0;
+				hiddenAwayScore.value = 0;
+
+				// Her iki azaltma butonunu devre dışı bırak
+				homeMinusBtn.disabled = true;
+				homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+				awayMinusBtn.disabled = true;
+				awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+			}
+		} else {
+			let newScore = parseInt(awayScoreElement.textContent) + change;
+			if (newScore >= 0) {
+				awayScoreElement.textContent = newScore;
+				hiddenAwayScore.value = newScore;
+
+				// Away azaltma butonu durumunu güncelle
+				if (newScore < 1) {
+					awayMinusBtn.disabled = true;
+					awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+				} else {
+					awayMinusBtn.disabled = false;
+					awayMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+				}
+			}
+			if(awayScoreElement.textContent=="") {
+				awayScoreElement.textContent=0;
+				hiddenAwayScore.value = 0;
+				homeScoreElement.textContent=0;
+				hiddenHomeScore.value = 0;
+
+				// Her iki azaltma butonunu devre dışı bırak
+				homeMinusBtn.disabled = true;
+				homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+				awayMinusBtn.disabled = true;
+				awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+			}
+		}
+
+		const formData = new FormData(form);
+
+		// localStorage'dan mevcut maçları al
+		const currentMatches = JSON.parse(localStorage.getItem('matches') || '[]');
+		console.log('Sending matches:', currentMatches);
+
+		// FormData'ya matches'i ekle
+		formData.append('allMatches', JSON.stringify(currentMatches));
+
+		fetch(form.action, {
+			method: 'POST',
+			body: formData
+		})
+		.then(response => {
+			if (!response.ok) {
+				return response.json().then(err => {
+					console.error('Server error:', err);
+					throw new Error(err.details || 'Server error occurred');
+				});
+			}
+			return response.json();
+		})
+		.then(data => {
+			console.log('Received data:', data);
+			localStorage.setItem('standings', JSON.stringify(data.standings));
+			localStorage.setItem('matches', JSON.stringify(data.matches));
+			updateStandingsTable();
+			updateMatchesDisplay();
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			// Hata durumunda kullanıcıya bilgi ver
+			alert('Bir hata oluştu: ' + error.message);
+		});
+	
+	}
+
+	function updateMatchesDisplay() {
+		const matches = JSON.parse(localStorage.getItem('matches'));
+		const currentWeek = '@Model.Week';
+
+		const weekMatches = matches.find(w => w.Week === currentWeek);
+		if (weekMatches) {
+			weekMatches.Matches.forEach(match => {
+				const homeScoreElement = document.getElementById(`homeScore-${match.MatchId}`);
+				const awayScoreElement = document.getElementById(`awayScore-${match.MatchId}`);
+				const hiddenHomeScore = document.getElementById(`hiddenHomeScore-${match.MatchId}`);
+				const hiddenAwayScore = document.getElementById(`hiddenAwayScore-${match.MatchId}`);
+
+				// Azaltma butonlarını seç
+				const homeMinusBtn = homeScoreElement.parentElement.previousElementSibling.querySelector('button:first-child');
+				const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySelector('button:first-child');
+
+				if (homeScoreElement && awayScoreElement) {
+					homeScoreElement.textContent = match.HomeScore ?? '';
+					awayScoreElement.textContent = match.AwayScore ?? '';
+
+					// Butonların durumunu güncelle
+					if (match.HomeScore == null || match.HomeScore < 1) {
+						homeMinusBtn.disabled = true;
+						homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+					} else {
+						homeMinusBtn.disabled = false;
+						homeMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+					}
+
+					if (match.AwayScore == null || match.AwayScore < 1) {
+						awayMinusBtn.disabled = true;
+						awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+					} else {
+						awayMinusBtn.disabled = false;
+						awayMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+					}
+				}
+				if (hiddenHomeScore && hiddenAwayScore) {
+					hiddenHomeScore.value = match.HomeScore ?? '';
+					hiddenAwayScore.value = match.AwayScore ?? '';
+				}
+			});
+		}
+	}
+</script>
