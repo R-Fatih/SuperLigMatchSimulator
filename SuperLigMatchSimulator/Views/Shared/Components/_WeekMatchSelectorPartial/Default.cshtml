@@ -3,68 +3,13 @@
 
 <div class="container mx-auto p-2">
 	<div class="flex items-center justify-center space-x-4 mb-4">
-		<button id="prevWeekBtn" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">←</button>
+		<button id="prevWeek" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">←</button>
 		<span id="currentWeek" class="text-xl font-bold text-gray-800">Week @Model.Week</span>
-		<button id="nextWeekBtn" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">→</button>
+		<button id="nextWeek" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">→</button>
 	</div>
 
-	<div class="grid grid-cols-3 gap-2">
-		@foreach (var item in Model.Matches)
-		{
-			<div class="bg-white rounded shadow-sm p-2">
-				<div class="flex items-center justify-between">
-					<!-- Home Team -->
-					<div class="flex items-center space-x-1">
-						<img src="@item.HomeLogo" alt="@item.HomeTeam" class="w-8 h-8 object-contain" />
-						<div class="flex space-x-1">
-							<button onclick="updateScore('@item.MatchId', 'home', -1)"
-							@((item.HomeScore == null || item.HomeScore < 1) ? "disabled" : "")
-									class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs @((item.HomeScore == null || item.HomeScore < 1) ? "opacity-50 cursor-not-allowed" : "")">
-								-
-							</button>
-							<button onclick="updateScore('@item.MatchId', 'home', 1)"
-									class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs">
-								+
-							</button>
-						</div>
-					</div>
-
-					<!-- Score Display -->
-					<div class="flex items-center space-x-2">
-						<span id="homeScore-@item.MatchId" class="text-lg font-bold">@(item.HomeScore) </span>
-						<span class="text-lg font-bold text-gray-400">-</span>
-						<span id="awayScore-@item.MatchId" class="text-lg font-bold">@(item.AwayScore)</span>
-					</div>
-
-					<!-- Away Team -->
-					<div class="flex items-center space-x-1">
-						<div class="flex space-x-1">
-							<button onclick="updateScore('@item.MatchId', 'away', -1)"
-							@((item.AwayScore == null || item.AwayScore < 1) ? "disabled" : "")
-									class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs @((item.AwayScore == null || item.AwayScore < 1) ? "opacity-50 cursor-not-allowed" : "")">
-								-
-							</button>
-							<button onclick="updateScore('@item.MatchId', 'away', 1)"
-									class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs">
-								+
-							</button>
-						</div>
-						<img src="@item.AwayLogo" alt="@item.AwayTeam" class="w-8 h-8 object-contain" />
-					</div>
-				</div>
-
-				<form id="predictionForm-@item.MatchId" asp-action="SavePrediction" asp-controller="Match" method="post">
-					<input type="hidden" name="MatchId" value="@item.MatchId" />
-					<input type="hidden" id="hiddenHomeScore-@item.MatchId" name="HomeScore" value="@(item.HomeScore)" />
-					<input type="hidden" id="hiddenAwayScore-@item.MatchId" name="AwayScore" value="@(item.AwayScore)" />
-					<input type="hidden" name="HomeTeam" value="@item.HomeTeam" />
-					<input type="hidden" name="AwayTeam" value="@item.AwayTeam" />
-					<input type="hidden" name="HomeLogo" value="@item.HomeLogo" />
-					<input type="hidden" name="AwayLogo" value="@item.AwayLogo" />
-					<input type="hidden" name="Week" value="@Model.Week" />
-				</form>
-			</div>
-		}
+	<div  id="matches" class="grid grid-cols-3 gap-2">
+		
 	</div>
 </div>
 
@@ -143,7 +88,7 @@
 		// Azaltma butonlarını seç
 		const homeMinusBtn = homeScoreElement.parentElement.previousElementSibling.querySelector('button:first-child');
 		const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySelector('button:first-child');
-
+		console.log("\\"+homeScoreElement.textContent+"\\");
 		if (team === 'home') {
 			let newScore = parseInt(homeScoreElement.textContent) + change;
 			if (newScore >= 0) {
@@ -159,7 +104,7 @@
 					homeMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 				}
 			}
-			if(homeScoreElement.textContent=="") {
+			if(homeScoreElement.textContent==" "||homeScoreElement.textContent=="null") {
 				homeScoreElement.textContent=0;
 				hiddenHomeScore.value = 0;
 				awayScoreElement.textContent=0;
@@ -186,7 +131,7 @@
 					awayMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 				}
 			}
-			if(awayScoreElement.textContent=="") {
+			if(awayScoreElement.textContent==""||awayScoreElement.textContent=="null") {
 				awayScoreElement.textContent=0;
 				hiddenAwayScore.value = 0;
 				homeScoreElement.textContent=0;
@@ -209,7 +154,7 @@
 		// FormData'ya matches'i ekle
 		formData.append('allMatches', JSON.stringify(currentMatches));
 
-		fetch(form.action, {
+		fetch('/Match/SavePrediction', {
 			method: 'POST',
 			body: formData
 		})
@@ -282,3 +227,126 @@
 		}
 	}
 </script>
+
+<script>
+	function GetWeekMatches(week) {
+	const currentMatches = JSON.parse(localStorage.getItem('matches') || '[]');
+	const currentWeekSpan=document.getElementById('currentWeek');
+			console.log('Sending matches:', currentMatches);
+
+			// FormData'ya matches'i ekle
+					const formData = new FormData();
+
+			formData.append('allMatches', JSON.stringify(currentMatches));
+			formData.append('week',week)
+			fetch("/Match/GetWeekMatches", {
+				method: 'POST',
+				body: formData
+			}).then(response => {
+				if (!response.ok) {
+					return response.json().then(err => {
+						console.error('Server error:', err);
+						throw new Error(err.details || 'Server error occurred');
+					});
+				}
+				return response.json();
+			}).then(data => {
+				
+				const matchDiv=document.getElementById('matches');
+				matchDiv.innerHTML="";
+				data.matches.forEach((team,index)=>{
+					team.homeScore = team.homeScore == null ? "" : team.homeScore;
+	team.awayScore = team.awayScore == null ? "" : team.awayScore;
+
+					const row=`<div class="bg-white rounded shadow-sm p-2">
+		<div class="flex items-center justify-between">
+			<!-- Home Team -->
+			<div class="flex items-center space-x-1">
+				<img src="${team.homeLogo}" alt="${team.homeTeam}" class="w-8 h-8 object-contain" />
+				<div class="flex space-x-1">
+					<button onclick="updateScore('${team.matchId}', 'home', -1)"
+	${team.homeScore == null || team.homeScore < 1 || team.isFinished ? "disabled" : ""}							class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs ${team.homeScore == null || team.homeScore < 1||team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
+							-
+					</button>
+					<button onclick="updateScore('${team.matchId}', 'home', 1)"
+						${team.isFinished ? "disabled" : ""}	class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs ${team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
+						+
+					</button>
+				</div>
+			</div>
+
+			<!-- Score Display -->
+			<div class="flex items-center space-x-2">
+				<span id="homeScore-${team.matchId}" class="text-lg font-bold">${team.homeScore} </span>
+				<span class="text-lg font-bold text-gray-400">-</span>
+				<span id="awayScore-${team.matchId}" class="text-lg font-bold">${team.awayScore}</span>
+			</div>
+
+			<!-- Away Team -->
+			<div class="flex items-center space-x-1">
+				<div class="flex space-x-1">
+					<button onclick="updateScore('${team.matchId}', 'away', -1)"
+					${team.awayScore == null || team.awayScore < 1 || team.isFinished ? "disabled" : ""}
+							class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs ${team.awayScore == null || team.awayScore < 1||team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
+						-
+					</button>
+					<button onclick="updateScore('${team.matchId}', 'away', 1)"
+						${team.isFinished ? "disabled" : ""}	class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs ${team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
+						+
+					</button>
+				</div>
+				<img src="${team.awayLogo}" alt="${team.awayTeam}" class="w-8 h-8 object-contain" />
+			</div>
+		</div>
+
+		<form id="predictionForm-${team.matchId}" asp-action="SavePrediction" asp-controller="Match" method="post">
+			<input type="hidden" name="MatchId" value="${team.matchId}" />
+			<input type="hidden" id="hiddenHomeScore-${team.matchId}" name="HomeScore" value="${team.homeScore}" />
+			<input type="hidden" id="hiddenAwayScore-${team.matchId}" name="AwayScore" value="${team.awayScore}" />
+			<input type="hidden" name="HomeTeam" value="${team.homeTeam}" />
+			<input type="hidden" name="AwayTeam" value="${team.awayTeam}" />
+			<input type="hidden" name="HomeLogo" value="${team.homeLogo}" />
+			<input type="hidden" name="AwayLogo" value="${team.awayLogo}" />
+			<input type="hidden" name="Week" value="${team.week}" />
+		</form>
+	</div>`;
+		matchDiv.innerHTML+=row;
+		currentWeekSpan.textContent="Week "+week;
+				});
+			}).catch(error => {
+				console.error('Error:', error);
+				// Hata durumunda kullanıcıya bilgi ver
+				alert('Bir hata oluştu: ' + error.message);
+			});
+		}
+
+</script>
+
+
+<script>
+						document.addEventListener('DOMContentLoaded', function() {
+		console.log("updated");
+		GetWeekMatches(21);
+	});
+</script>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+     
+
+            
+            // Update the next week button's onclick event
+            const nextWeekBtn = document.getElementById('nextWeek');
+            nextWeekBtn.onclick = function() {
+                const currentWeek = parseInt(document.getElementById('currentWeek').textContent.split(' ')[1]);
+                GetWeekMatches(currentWeek + 1);
+            };
+			const prevWeekBtn = document.getElementById('prevWeek');
+			prevWeekBtn.onclick = function() {
+				const currentWeek = parseInt(document.getElementById('currentWeek').textContent.split(' ')[1]);
+				GetWeekMatches(currentWeek - 1);
+			};
+        });
+    </script>

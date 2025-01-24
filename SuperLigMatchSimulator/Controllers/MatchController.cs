@@ -8,6 +8,7 @@ namespace SuperLigMatchSimulator.Controllers
     public class MatchController : Controller
     {
         private const int TEAM_COUNT = 19;
+        private const string url = "https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/matchesFullScoreV2.json";
         private Dictionary<string, int> reductedPoints = new Dictionary<string, int>
         {
             {"Adana Demirspor",-3 }
@@ -17,7 +18,7 @@ namespace SuperLigMatchSimulator.Controllers
             if (isFirst)
             {
                 var client = new HttpClient();
-                var json = await client.GetFromJsonAsync<IList<WeekMatch>>("https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/matchesFullScore.json");
+                var json = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
 
                 var standings = StandingsHelper.StandingsCalculator(json, reductedPoints);
                 
@@ -31,7 +32,22 @@ namespace SuperLigMatchSimulator.Controllers
             }
             return View();
         }
-        
+
+        [HttpPost]
+        public async Task<IActionResult> GetWeekMatches(string week, [FromForm] string allMatches)
+        {
+            IList<WeekMatch> existingMatches;
+            
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                existingMatches = JsonSerializer.Deserialize<IList<WeekMatch>>(allMatches, options);
+            
+            var lastMatches = existingMatches.FirstOrDefault(x => x.Week == week);
+
+            return Json(lastMatches);
+        }
 
         [HttpPost]
         public async Task<IActionResult> SavePrediction(Match match, [FromForm] string allMatches)
@@ -53,13 +69,13 @@ namespace SuperLigMatchSimulator.Controllers
                     Console.WriteLine($"JSON Deserialize Error: {ex.Message}");
                     // JSON parse edilemezse API'den al
                     var client = new HttpClient();
-                    existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>("https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/matchesFullScore.json");
+                    existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
                 }
 
                 if (existingMatches == null)
                 {
                     var client = new HttpClient();
-                    existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>("https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/matchesFullScore.json");
+                    existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
                 }
 
                 var weekMatch = existingMatches.FirstOrDefault(x => x.Matches.Any(m => m.MatchId == match.MatchId));

@@ -17,5 +17,6 @@ namespace SuperLigMatchSimulator.Classes
         public string HomeLogo { get; set; }
         public string AwayLogo { get; set; }
         public string MatchId { get => HomeTeam + AwayTeam; }
+        public bool IsFinished { get; set; }
     }
 }
