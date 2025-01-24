@@ -8,7 +8,7 @@
 		<button id="nextWeek" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">→</button>
 	</div>
 
-	<div  id="matches" class="grid grid-cols-3 gap-2">
+	<div  id="matches" >
 		
 	</div>
 </div>
@@ -84,13 +84,19 @@
 		const hiddenHomeScore = document.getElementById(`hiddenHomeScore-${matchId}`);
 		const hiddenAwayScore = document.getElementById(`hiddenAwayScore-${matchId}`);
 		const form = document.getElementById(`predictionForm-${matchId}`);
+		const refreshDiv=document.getElementById(`RefreshDiv-${matchId}`);
+		const refreshButton=document.getElementById(`RefreshButton-${matchId}`);
 
 		// Azaltma butonlarını seç
-		const homeMinusBtn = homeScoreElement.parentElement.previousElementSibling.querySelector('button:first-child');
-		const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySelector('button:first-child');
+		const homeMinusBtn = homeScoreElement.parentElement.previousElementSibling.querySelector('button:not([id^="refreshButton"])');
+const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySelector('button:not([id^="refreshButton"])');
 		console.log("\\"+homeScoreElement.textContent+"\\");
+
+		if(change!=null){
+
 		if (team === 'home') {
 			let newScore = parseInt(homeScoreElement.textContent) + change;
+				
 			if (newScore >= 0) {
 				homeScoreElement.textContent = newScore;
 				hiddenHomeScore.value = newScore;
@@ -104,20 +110,24 @@
 					homeMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 				}
 			}
-			if(homeScoreElement.textContent==" "||homeScoreElement.textContent=="null") {
+			if(homeScoreElement.textContent==" "||homeScoreElement.textContent=="null"||homeScoreElement.textContent==null||homeScoreElement.textContent=="") {
 				homeScoreElement.textContent=0;
 				hiddenHomeScore.value = 0;
 				awayScoreElement.textContent=0;
 				hiddenAwayScore.value = 0;
-
+				
 				// Her iki azaltma butonunu devre dışı bırak
 				homeMinusBtn.disabled = true;
 				homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
 				awayMinusBtn.disabled = true;
 				awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
 			}
+			refreshDiv.style.visibility = "visible";
+				refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
+				refreshButton.disabled=false;
 		} else {
 			let newScore = parseInt(awayScoreElement.textContent) + change;
+				
 			if (newScore >= 0) {
 				awayScoreElement.textContent = newScore;
 				hiddenAwayScore.value = newScore;
@@ -131,7 +141,7 @@
 					awayMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 				}
 			}
-			if(awayScoreElement.textContent==""||awayScoreElement.textContent=="null") {
+			if(awayScoreElement.textContent==""||awayScoreElement.textContent=="null"||awayScoreElement.textContent==null) {
 				awayScoreElement.textContent=0;
 				hiddenAwayScore.value = 0;
 				homeScoreElement.textContent=0;
@@ -143,8 +153,17 @@
 				awayMinusBtn.disabled = true;
 				awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
 			}
+			refreshDiv.style.visibility = "visible";
+				refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
+				refreshButton.disabled=false;
 		}
-
+		
+		}else{
+			homeScoreElement.textContent="";
+			awayScoreElement.textContent="";
+			hiddenHomeScore.value = null;
+			hiddenAwayScore.value =null;
+		}
 		const formData = new FormData(form);
 
 		// localStorage'dan mevcut maçları al
@@ -281,6 +300,14 @@
 				<span class="text-lg font-bold text-gray-400">-</span>
 				<span id="awayScore-${team.matchId}" class="text-lg font-bold">${team.awayScore}</span>
 			</div>
+			
+<div id="RefreshDiv-${team.matchId}" style="visibility:${team.homeScore!=" "||team.homeScore!=""||team.homeScore==null?"hidden":"visible"};" class="flex justify-center mt-2">
+    <button id="RefreshButton-${team.matchId}" onclick="ResetMatch('${team.matchId}')" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+    </button>
+</div>
 
 			<!-- Away Team -->
 			<div class="flex items-center space-x-1">
@@ -329,7 +356,17 @@
 		GetWeekMatches(21);
 	});
 </script>
+<script> 
 
+	function ResetMatch(matchId) {
+		console.log("resetting match", matchId);
+updateScore(matchId, null, null);	
+		const refreshDiv=document.getElementById(`RefreshDiv-${matchId}`);
+
+	refreshDiv.style.visibility = "hidden";
+	}
+
+</script>
 
 
     <script>
@@ -348,5 +385,7 @@
 				const currentWeek = parseInt(document.getElementById('currentWeek').textContent.split(' ')[1]);
 				GetWeekMatches(currentWeek - 1);
 			};
+
         });
     </script>
+	
