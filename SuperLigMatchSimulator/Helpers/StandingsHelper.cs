@@ -4,7 +4,7 @@ namespace SuperLigMatchSimulator.Helpers
 {
     public static class StandingsHelper
     {
-        public static IList<Standing> StandingsCalculator(IList<WeekMatch> json, Dictionary<string, int> reductedPoints)
+        public static IList<Standing> StandingsCalculator(IList<WeekMatch> json, Dictionary<string, int> reductedPoints, IList<CurrentStanding>? currentStandings)
         {
             var standindgs = new List<Standing>();
             var allMatches = json.SelectMany(x => x.Matches).ToList();
@@ -43,6 +43,7 @@ namespace SuperLigMatchSimulator.Helpers
                 .Select(g =>
                 {
                     var team = g.Key;
+
                     var standing = new Standing
                     {
                         Team = g.Key,
@@ -67,8 +68,27 @@ namespace SuperLigMatchSimulator.Helpers
                     return standing;
                 })
                 .OrderByDescending(x => x.Points)
-                .ThenByDescending(x => x.GoalDifference);
-            return combinedStandings.ToList();
+                .ThenByDescending(x => x.GoalDifference).ToList();
+
+
+            return combinedStandings.Select((x, index) =>
+            {
+                if (currentStandings != null)
+                {
+
+                    var teamCurrentStanding = currentStandings.FirstOrDefault(y => y.TeamName == x.Team);
+                    if (teamCurrentStanding != null)
+                    {
+                        x.TrendDirection = teamCurrentStanding.Rank > index + 1
+                            ? TrendDirection.Up
+                            : teamCurrentStanding.Rank < index + 1
+                                ? TrendDirection.Down
+                                : TrendDirection.Equal;
+                    }
+
+                }
+                return x;
+            }).ToList();
         }
     }
 }

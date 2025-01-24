@@ -20,7 +20,7 @@ namespace SuperLigMatchSimulator.Controllers
                 var client = new HttpClient();
                 var json = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
 
-                var standings = StandingsHelper.StandingsCalculator(json, reductedPoints);
+                var standings = StandingsHelper.StandingsCalculator(json, reductedPoints,null);
                 
                 // ViewBag'e shouldInitialize flag'i ekle
                 ViewBag.ShouldInitialize = true;
@@ -50,12 +50,13 @@ namespace SuperLigMatchSimulator.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SavePrediction(Match match, [FromForm] string allMatches)
+        public async Task<IActionResult> SavePrediction(Match match, [FromForm] string allMatches, [FromForm] string currentStandings)
         {
             try
             {
                 // JSON string'i List<WeekMatch>'e dönüştür
                 IList<WeekMatch> existingMatches;
+                IList<CurrentStanding> currentST=new List<CurrentStanding>();
                 try
                 {
                     var options = new JsonSerializerOptions
@@ -63,6 +64,7 @@ namespace SuperLigMatchSimulator.Controllers
                         PropertyNameCaseInsensitive = true
                     };
                     existingMatches = JsonSerializer.Deserialize<IList<WeekMatch>>(allMatches, options);
+                    currentST = JsonSerializer.Deserialize<IList<CurrentStanding>>(currentStandings, options);
                 }
                 catch (JsonException ex)
                 {
@@ -70,6 +72,7 @@ namespace SuperLigMatchSimulator.Controllers
                     // JSON parse edilemezse API'den al
                     var client = new HttpClient();
                     existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
+
                 }
 
                 if (existingMatches == null)
@@ -95,7 +98,7 @@ namespace SuperLigMatchSimulator.Controllers
                     }
                 }
 
-                var standings = StandingsHelper.StandingsCalculator(existingMatches, reductedPoints);
+                var standings = StandingsHelper.StandingsCalculator(existingMatches, reductedPoints,currentST);
                 
                 var result = new { 
                     standings = standings,

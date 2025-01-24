@@ -88,8 +88,8 @@
 		const refreshButton=document.getElementById(`RefreshButton-${matchId}`);
 
 		// Azaltma butonlarını seç
-		const homeMinusBtn = homeScoreElement.parentElement.previousElementSibling.querySelector('button:not([id^="refreshButton"])');
-const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySelector('button:not([id^="refreshButton"])');
+const homeMinusBtn = document.getElementById(`homeMinus-${matchId}`);
+const awayMinusBtn = document.getElementById(`awayMinus-${matchId}`);
 		console.log("\\"+homeScoreElement.textContent+"\\");
 
 		if(change!=null){
@@ -168,10 +168,12 @@ const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySele
 
 		// localStorage'dan mevcut maçları al
 		const currentMatches = JSON.parse(localStorage.getItem('matches') || '[]');
+				const currentStandings = JSON.parse(localStorage.getItem('currentStandings') || '[]');
 		console.log('Sending matches:', currentMatches);
 
 		// FormData'ya matches'i ekle
 		formData.append('allMatches', JSON.stringify(currentMatches));
+			formData.append('currentStandings', JSON.stringify(currentStandings));
 
 		fetch('/Match/SavePrediction', {
 			method: 'POST',
@@ -283,7 +285,7 @@ const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySele
 			<div class="flex items-center space-x-1">
 				<img src="${team.homeLogo}" alt="${team.homeTeam}" class="w-8 h-8 object-contain" />
 				<div class="flex space-x-1">
-					<button onclick="updateScore('${team.matchId}', 'home', -1)"
+					<button id="homeMinus-${team.matchId}" onclick="updateScore('${team.matchId}', 'home', -1)"
 	${team.homeScore == null || team.homeScore < 1 || team.isFinished ? "disabled" : ""}							class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs ${team.homeScore == null || team.homeScore < 1||team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
 							-
 					</button>
@@ -300,19 +302,19 @@ const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySele
 				<span class="text-lg font-bold text-gray-400">-</span>
 				<span id="awayScore-${team.matchId}" class="text-lg font-bold">${team.awayScore}</span>
 			</div>
-			
-<div id="RefreshDiv-${team.matchId}" style="visibility:${team.homeScore!=" "||team.homeScore!=""||team.homeScore==null?"hidden":"visible"};" class="flex justify-center mt-2">
+			${team.isFinished==true?"":
+`<div id="RefreshDiv-${team.matchId}" style="visibility:${team.homeScore!=" "?"hidden":"visible"};" class="flex justify-center mt-2">
     <button id="RefreshButton-${team.matchId}" onclick="ResetMatch('${team.matchId}')" class="text-gray-600 hover:text-gray-800 focus:outline-none">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
     </button>
-</div>
-
+</div>`
+}
 			<!-- Away Team -->
 			<div class="flex items-center space-x-1">
 				<div class="flex space-x-1">
-					<button onclick="updateScore('${team.matchId}', 'away', -1)"
+					<button id="awayMinus-${team.matchId}" onclick="updateScore('${team.matchId}', 'away', -1)"
 					${team.awayScore == null || team.awayScore < 1 || team.isFinished ? "disabled" : ""}
 							class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs ${team.awayScore == null || team.awayScore < 1||team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
 						-
@@ -354,6 +356,17 @@ const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySele
 						document.addEventListener('DOMContentLoaded', function() {
 		console.log("updated");
 		GetWeekMatches(21);
+			const standings = JSON.parse(localStorage.getItem('standings')||[]);
+			if(standings!=[]){
+	const simplifiedStandings = standings.map((team, index) => ({
+	   teamName: team.team,
+	   rank: index + 1
+	}));
+
+	const simplifiedStandingsJson = JSON.stringify(simplifiedStandings);
+
+		localStorage.setItem('currentStandings', simplifiedStandingsJson);
+		}
 	});
 </script>
 <script> 
@@ -362,7 +375,12 @@ const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySele
 		console.log("resetting match", matchId);
 updateScore(matchId, null, null);	
 		const refreshDiv=document.getElementById(`RefreshDiv-${matchId}`);
-
+		const homeMinusBtn = document.getElementById(`homeMinus-${matchId}`);
+		const awayMinusBtn = document.getElementById(`awayMinus-${matchId}`);
+		awayMinusBtn.disabled = true;
+		awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+			homeMinusBtn.disabled = true;
+		homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
 	refreshDiv.style.visibility = "hidden";
 	}
 

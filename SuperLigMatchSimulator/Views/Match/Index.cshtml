@@ -75,6 +75,7 @@
 		if (!localStorage.getItem('standings') || !localStorage.getItem('matches')) {
 			localStorage.setItem('standings', '@Html.Raw(ViewBag.InitialStandings)');
 			localStorage.setItem('matches', '@Html.Raw(ViewBag.InitialMatches)');
+
 		}
 	}
 
@@ -143,5 +144,6 @@
 	document.addEventListener('DOMContentLoaded', function() {
 		console.log("updated");
 		updateStandingsTable();
+
 	});
 </script>
