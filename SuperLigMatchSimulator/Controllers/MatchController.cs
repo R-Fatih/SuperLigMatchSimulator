@@ -115,5 +115,38 @@ namespace SuperLigMatchSimulator.Controllers
                 return StatusCode(500, new { error = "Internal server error", details = ex.Message });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateStandings([FromForm] string allMatches, [FromForm] string currentStandings)
+        {
+            IList<WeekMatch> existingMatches=new List<WeekMatch>();
+            IList<CurrentStanding> currentST = new List<CurrentStanding>();
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                existingMatches = JsonSerializer.Deserialize<IList<WeekMatch>>(allMatches, options);
+                currentST = JsonSerializer.Deserialize<IList<CurrentStanding>>(currentStandings, options);
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"JSON Deserialize Error: {ex.Message}");
+
+                var client = new HttpClient();
+                //existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
+
+            }
+            var standings = StandingsHelper.StandingsCalculator(existingMatches, reductedPoints,currentST );
+
+            var result = new
+            {
+                standings = standings,
+                matches = existingMatches
+            };
+
+            return Json(result);
+        }
     }
 }

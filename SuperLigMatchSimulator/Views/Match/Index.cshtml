@@ -71,14 +71,72 @@
 
 <script>
 
-		if (@(ViewBag.ShouldInitialize ? "true" : "false"))
-	{
-		if (!localStorage.getItem('standings') || !localStorage.getItem('matches')) {
-			localStorage.setItem('standings', '@Html.Raw(ViewBag.InitialStandings)');
-			localStorage.setItem('matches', '@Html.Raw(ViewBag.InitialMatches)');
+        if (@(ViewBag.ShouldInitialize ? "true" : "false"))
+        {
+            if (!localStorage.getItem('standings') || !localStorage.getItem('matches')) {
+                localStorage.setItem('standings', '@Html.Raw(ViewBag.InitialStandings)');
+                localStorage.setItem('matches', '@Html.Raw(ViewBag.InitialMatches)');
+            } else {
+				console.log("girdi")
+                const initialMatches = JSON.parse('@Html.Raw(ViewBag.InitialMatches)');
+                const storedMatches = JSON.parse(localStorage.getItem('matches'));
+				//console.log(initialMatches)
+				//console.log(storedMatches)
 
-		}
-	}
+						storedMatches.forEach(weekMatch => {
+	   weekMatch.matches.forEach(storedMatch => {
+		   const initialMatch = initialMatches.flatMap(week => week.Matches).find(match =>
+			   match.MatchId === storedMatch.matchId
+		   );
+		  // console.log(initialMatch)
+		 //  console.log(storedMatch)
+
+		   if (initialMatch && initialMatch.IsFinished !== storedMatch.isFinished) {
+			   storedMatch.isFinished = initialMatch.IsFinished;
+			   storedMatch.homeScore = initialMatch.HomeScore;
+			   storedMatch.awayScore = initialMatch.AwayScore;
+			   
+		   }
+	   });
+	});
+                localStorage.setItem('matches', JSON.stringify(storedMatches));
+						const currentStandings = JSON.parse(localStorage.getItem('currentStandings') || '[]');
+
+						const formData = new FormData();
+						formData.append('allMatches',JSON.stringify(storedMatches));
+						formData.append('currentStandings',JSON.stringify(currentStandings));
+
+		//console.log('Sending matches:', currentMatches);
+
+		// FormData'ya matches'i ekle
+
+		fetch('/Match/UpdateStandings', {
+			method: 'POST',
+			body: formData
+		})
+		.then(response => {
+			if (!response.ok) {
+				return response.json().then(err => {
+					console.error('Server error:', err);
+					throw new Error(err.details || 'Server error occurred');
+				});
+			}
+			return response.json();
+		})
+		.then(data => {
+			console.log('Received data:', data);
+			localStorage.setItem('standings', JSON.stringify(data.standings));
+			localStorage.setItem('matches', JSON.stringify(data.matches));
+			updateStandingsTable();
+			updateMatchesDisplay();
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			// Hata durumunda kullanıcıya bilgi ver
+			alert('Bir hata oluştu: ' + error.message);
+		});
+            }
+        }
 
 	// Standings tablosunu güncelle
 	function updateStandingsTable() {
