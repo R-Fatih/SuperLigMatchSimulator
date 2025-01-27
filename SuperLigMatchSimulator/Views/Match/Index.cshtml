@@ -95,14 +95,15 @@
 		 //  console.log(storedMatch)
 
 		   if (initialMatch && initialMatch.IsFinished !== storedMatch.isFinished) {
+			   changedMatches.push({
+			   initialMatch: initialMatch,
+			   storedMatch: storedMatch
+		   });
 			   storedMatch.isFinished = initialMatch.IsFinished;
 			   storedMatch.homeScore = initialMatch.HomeScore;
 			   storedMatch.awayScore = initialMatch.AwayScore;
 
-				changedMatches.push({
-			   initialMatch: initialMatch,
-			   storedMatch: storedMatch
-		   });
+				
 		   }
 	   });
 	});
