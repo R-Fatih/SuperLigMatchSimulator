@@ -6,6 +6,7 @@
 }
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container mx-auto px-2">
 	<div class="flex flex-col lg:flex-row">
@@ -68,7 +69,8 @@
 		</div>
 	</div>
 </div>
-
+<script src="sweetalert2.min.js"></script>
+<link rel="stylesheet" href="sweetalert2.min.css">
 <script>
 
         if (@(ViewBag.ShouldInitialize ? "true" : "false"))
@@ -82,6 +84,7 @@
                 const storedMatches = JSON.parse(localStorage.getItem('matches'));
 				//console.log(initialMatches)
 				//console.log(storedMatches)
+				let changedMatches = [];
 
 						storedMatches.forEach(weekMatch => {
 	   weekMatch.matches.forEach(storedMatch => {
@@ -95,10 +98,15 @@
 			   storedMatch.isFinished = initialMatch.IsFinished;
 			   storedMatch.homeScore = initialMatch.HomeScore;
 			   storedMatch.awayScore = initialMatch.AwayScore;
-			   
+
+				changedMatches.push({
+			   initialMatch: initialMatch,
+			   storedMatch: storedMatch
+		   });
 		   }
 	   });
 	});
+				localStorage.setItem('changedMatches', JSON.stringify(changedMatches));
                 localStorage.setItem('matches', JSON.stringify(storedMatches));
 						const currentStandings = JSON.parse(localStorage.getItem('currentStandings') || '[]');
 
@@ -129,6 +137,23 @@
 			localStorage.setItem('matches', JSON.stringify(data.matches));
 			updateStandingsTable();
 			updateMatchesDisplay();
+			let chnMatch=JSON.parse(localStorage.getItem('changedMatches')) || [];
+				if (chnMatch.length > 0) {
+		let messageText = '';
+		chnMatch.forEach(change => {
+			messageText += `Maç: ${change.initialMatch.HomeTeam} vs ${change.initialMatch.AwayTeam}\n`;
+			messageText += `Simüle Edilen Skor: ${change.storedMatch.homeScore} - ${change.storedMatch.awayScore}\n`;
+			messageText += `Gerçek Skor: ${change.initialMatch.HomeScore} - ${change.initialMatch.AwayScore}\n`;
+			messageText += '------------------------\n';
+		});
+		localStorage.removeItem('changedMatches');
+		Swal.fire({
+			title: 'Güncellenen Maçlar',
+			html: messageText.split('\n').join('<br>'),
+			icon: 'info',
+			confirmButtonText: 'Tamam'
+		});
+	}
 		})
 		.catch(error => {
 			console.error('Error:', error);
