@@ -27,7 +27,7 @@ namespace SuperLigMatchSimulator.Controllers
                 ViewBag.InitialStandings = JsonSerializer.Serialize(standings);
                 ViewBag.InitialMatches = JsonSerializer.Serialize(json);
 
-                var findClosestMatchWeekByDate = json.FirstOrDefault(x => x.Matches.Any(m => m.MatchDate > DateTime.UtcNow));
+                var findClosestMatchWeekByDate = json.FirstOrDefault(x => x.Matches.Any(m => m.MatchDate > DateTime.UtcNow&&m.IsFinished==false));
                 var lastMatches = json.FirstOrDefault(x => x.Week == findClosestMatchWeekByDate.Week);
                 ViewBag.CurrentWeekMatches = lastMatches;
             }

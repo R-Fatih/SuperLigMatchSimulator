@@ -367,7 +367,7 @@ const awayMinusBtn = document.getElementById(`awayMinus-${matchId}`);
 <script>
 						document.addEventListener('DOMContentLoaded', function() {
 		console.log("updated");
-		GetWeekMatches(21);
+		GetWeekMatches(@Model.Week);
 			const standings = JSON.parse(localStorage.getItem('standings')||[]);
 			if(standings!=[]){
 	const simplifiedStandings = standings.map((team, index) => ({
