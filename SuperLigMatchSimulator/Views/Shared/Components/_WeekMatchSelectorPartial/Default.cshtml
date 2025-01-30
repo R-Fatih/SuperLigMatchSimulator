@@ -15,6 +15,15 @@
 
 @section Styles {
 	<style>
+		.bye-team {
+			margin-top: 10px;
+			padding: 8px;
+			background-color: #f8f9fa;
+			border: 1px solid #ddd;
+			border-radius: 5px;
+			font-weight: bold;
+			text-align: center;
+		}
 		.match-prediction-container {
 			display: flex;
 			align-items: center;
@@ -276,7 +285,7 @@ const awayMinusBtn = document.getElementById(`awayMinus-${matchId}`);
 				
 				const matchDiv=document.getElementById('matches');
 				matchDiv.innerHTML="";
-				data.matches.forEach((team,index)=>{
+				data.matches.matches.forEach((team,index)=>{
 					team.homeScore = team.homeScore == null ? "" : team.homeScore;
 	team.awayScore = team.awayScore == null ? "" : team.awayScore;
 		
@@ -354,7 +363,8 @@ const awayMinusBtn = document.getElementById(`awayMinus-${matchId}`);
 		matchDiv.innerHTML+=row;
 		currentWeekSpan.textContent="Week "+week;
 				});
-			}).catch(error => {
+												matchDiv.innerHTML+=`<div class="text-lg font-min-w-[10px] text-center byeTeam"><strong>Haftayı bay geçen takım:</strong> <span>${data.byeTeam}</span></div>`
+				}).catch(error => {
 				console.error('Error:', error);
 				// Hata durumunda kullanıcıya bilgi ver
 				alert('Bir hata oluştu: ' + error.message);
