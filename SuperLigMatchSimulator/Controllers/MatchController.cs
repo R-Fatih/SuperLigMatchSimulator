@@ -9,10 +9,6 @@ namespace SuperLigMatchSimulator.Controllers
     {
         private const int TEAM_COUNT = 19;
         private const string url = "https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/matchesFullScoreV2.json";
-        private Dictionary<string, int> reductedPoints = new Dictionary<string, int>
-        {
-            {"Adana Demirspor",-3 }
-        };
         public async Task<IActionResult> Index(bool isFirst = true)
         {
             if (isFirst)
@@ -20,7 +16,7 @@ namespace SuperLigMatchSimulator.Controllers
                 var client = new HttpClient();
                 var json = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
 
-                var standings = StandingsHelper.StandingsCalculator(json, reductedPoints,null);
+                var standings =await  StandingsHelper.StandingsCalculator(json, null);
                 
                 // ViewBag'e shouldInitialize flag'i ekle
                 ViewBag.ShouldInitialize = true;
@@ -109,7 +105,7 @@ namespace SuperLigMatchSimulator.Controllers
                     }
                 }
 
-                var standings = StandingsHelper.StandingsCalculator(existingMatches, reductedPoints,currentST);
+                var standings =await  StandingsHelper.StandingsCalculator(existingMatches, currentST);
                 
                 var result = new { 
                     standings = standings,
@@ -148,7 +144,7 @@ namespace SuperLigMatchSimulator.Controllers
                 //existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
 
             }
-            var standings = StandingsHelper.StandingsCalculator(existingMatches, reductedPoints,currentST );
+            var standings =await  StandingsHelper.StandingsCalculator(existingMatches, currentST );
 
             var result = new
             {

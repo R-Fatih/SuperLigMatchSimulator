@@ -4,8 +4,15 @@ namespace SuperLigMatchSimulator.Helpers
 {
     public static class StandingsHelper
     {
-        public static IList<Standing> StandingsCalculator(IList<WeekMatch> json, Dictionary<string, int> reductedPoints, IList<CurrentStanding>? currentStandings)
-        {
+        private const string url2 = "https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/reductedPoints.json";
+
+        public static async Task< IList<Standing>> StandingsCalculator(IList<WeekMatch> json, IList<CurrentStanding>? currentStandings)
+        {        
+            Dictionary<string, int> reductedPoints;
+            var client = new HttpClient();
+
+            reductedPoints = await client.GetFromJsonAsync<Dictionary<string, int>>(url2);
+
             var standindgs = new List<Standing>();
             var allMatches = json.SelectMany(x => x.Matches).ToList();
 
