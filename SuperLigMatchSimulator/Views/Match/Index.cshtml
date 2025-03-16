@@ -19,30 +19,7 @@
 		<div class="w-full lg:w-3/5">
 			<div class="py-4">
 				<div class="shadow overflow-x-auto border-b border-gray-200 sm:rounded-lg">
-					<div class="bg-gray-100 p-4">
-						<div class="flex flex-wrap gap-2">
-							<div class="flex items-center">
-								<div class="w-4 h-4 bg-green-300 mr-2"></div>
-								<span class="text-xs sm:text-sm">2025-26 UEFA Şampiyonlar Ligi Lig A.</span>
-							</div>
-							<div class="flex items-center">
-								<div class="w-4 h-4 bg-green-100 mr-2"></div>
-								<span class="text-xs sm:text-sm">2025-26 UEFA ŞL 2. ET</span>
-							</div>
-							<div class="flex items-center">
-								<div class="w-4 h-4 bg-blue-200 mr-2"></div>
-								<span class="text-xs sm:text-sm">2025-26 UEFA AL 2. ET</span>
-							</div>
-							<div class="flex items-center">
-								<div class="w-4 h-4 bg-yellow-200 mr-2"></div>
-								<span class="text-xs sm:text-sm">2025-26 UEFA KL 2. ET</span>
-							</div>
-							<div class="flex items-center">
-								<div class="w-4 h-4 bg-red-200 mr-2"></div>
-								<span class="text-xs sm:text-sm">2025-26 1. Lig</span>
-							</div>
-						</div>
-					</div>
+								
 					<div class="overflow-x-auto">
 						<table class="min-w-full divide-y divide-gray-200">
 							<thead class="bg-gray-50">
@@ -62,6 +39,40 @@
 							<tbody id="standingsTableBody" class="bg-white divide-y divide-gray-200">
 								<!-- Will be populated by JavaScript -->
 							</tbody>
+							<div class="bg-gray-100 p-4">
+								<table class="text-left">
+									<tr>
+										<td class="flex items-center pb-2">
+											<div class="w-4 h-4 bg-green-300 mr-2"></div>
+											<span class="text-xs sm:text-sm">2025-26 UEFA Şampiyonlar Ligi Lig A.</span>
+										</td>
+									</tr>
+									<tr>
+										<td class="flex items-center pb-2">
+											<div class="w-4 h-4 bg-green-100 mr-2"></div>
+											<span class="text-xs sm:text-sm">2025-26 UEFA ŞL 2. ET</span>
+										</td>
+									</tr>
+									<tr>
+										<td class="flex items-center pb-2">
+											<div class="w-4 h-4 bg-blue-200 mr-2"></div>
+											<span class="text-xs sm:text-sm">2025-26 UEFA AL 2. ET</span>
+										</td>
+									</tr>
+									<tr>
+										<td class="flex items-center pb-2">
+											<div class="w-4 h-4 bg-yellow-200 mr-2"></div>
+											<span class="text-xs sm:text-sm">2025-26 UEFA KL 2. ET</span>
+										</td>
+									</tr>
+									<tr>
+										<td class="flex items-center pb-2">
+											<div class="w-4 h-4 bg-red-200 mr-2"></div>
+											<span class="text-xs sm:text-sm">2025-26 1. Lig</span>
+										</td>
+									</tr>
+								</table>
+							</div>
 						</table>
 					</div>
 				</div>
@@ -187,13 +198,13 @@
 
 			const row = `
 				<tr class="${rowColor} hover:opacity-90 transition duration-200">
-					<td class="px-2 py-2 text-xs text-sm font-medium">
+					<td class="px-2 py-0.5 text-xs text-sm font-medium">
 						<div class="flex items-center space-x-1">
 							<span>${getTrendIcon(team.trendDirection)}</span>
 							<span>${index + 1}</span>
 						</div>
 					</td>
-					<td class="px-2 py-2 text-xs">
+					<td class="px-2 py-0.5 text-xs">
 						<div class="flex items-center">
 							<div class="flex-shrink-0 h-10 w-10 mr-3">
 								<img class="h-10 w-10 rounded-full object-cover" src="${team.teamLogo}" alt="${team.team} Logo">
@@ -202,14 +213,14 @@
 							${team.reductedPoints !== 0 ? `<div class="text-xs text-gray-500 mt-1">(${team.reductedPoints} puan)</div>` : ''}
 						</div>
 					</td>
-					<td class="px-2 py-2 text-xs text-center text-sm text-gray-500">${team.played}</td>
-					<td class="px-2 py-2 text-xs text-center text-sm text-green-600">${team.won}</td>
-					<td class="px-2 py-2 text-xs text-center text-sm text-yellow-600">${team.drawn}</td>
-					<td class="px-2 py-2 text-xs text-center text-sm text-red-600">${team.lost}</td>
-					<td class="px-2 py-2 text-xs text-center text-sm text-blue-600">${team.goalsFor}</td>
-					<td class="px-2 py-2 text-xs text-center text-sm text-red-600">${team.goalsAgainst}</td>
-					<td class="px-2 py-2 text-xs text-center text-sm ${team.goalDifference >= 0 ? 'text-green-600' : 'text-red-600'}">${team.goalDifference}</td>
-					<td class="px-2 py-2 text-xs text-center text-sm font-semibold text-gray-900">${team.points}</td>
+					<td class="px-2 py-0.5 text-xs text-center text-sm text-gray-500">${team.played}</td>
+					<td class="px-2 py-0.5 text-xs text-center text-sm text-green-600">${team.won}</td>
+					<td class="px-2 py-0.5 text-xs text-center text-sm text-yellow-600">${team.drawn}</td>
+					<td class="px-2 py-0.5 text-xs text-center text-sm text-red-600">${team.lost}</td>
+					<td class="px-2 py-0.5 text-xs text-center text-sm text-blue-600">${team.goalsFor}</td>
+					<td class="px-2 py-0.5 text-xs text-center text-sm text-red-600">${team.goalsAgainst}</td>
+					<td class="px-2 py-0.5 text-xs text-center text-sm ${team.goalDifference >= 0 ? 'text-green-600' : 'text-red-600'}">${team.goalDifference}</td>
+					<td class="px-2 py-0.5 text-xs text-center text-sm font-semibold text-gray-900">${team.points}</td>
 				</tr>
 			`;
 			tbody.innerHTML += row;
