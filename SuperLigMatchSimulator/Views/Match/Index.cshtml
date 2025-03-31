@@ -12,7 +12,7 @@
 	<div class="flex flex-col lg:flex-row">
 		<!-- Left side for week match component -->
 		<div class="w-full lg:w-2/5 mb-4 lg:mb-0 lg:pr-4">
-			@await Component.InvokeAsync("_WeekMatchSelectorPartial", new { match = (WeekMatch)ViewBag.CurrentWeekMatches })
+			@await Component.InvokeAsync("_WeekMatchSelectorPartial", new { match = (Match)ViewBag.CurrentWeekMatches })
 		</div>
 
 		<!-- Right side for standings table -->
@@ -80,26 +80,25 @@
 		</div>
 	</div>
 </div>
-<script src="sweetalert2.min.js"></script>
-<link rel="stylesheet" href="sweetalert2.min.css">
-<script>
 
-        if (@(ViewBag.ShouldInitialize ? "true" : "false"))
-        {
-            if (!localStorage.getItem('standings') || !localStorage.getItem('matches')) {
-                localStorage.setItem('standings', '@Html.Raw(ViewBag.InitialStandings)');
-                localStorage.setItem('matches', '@Html.Raw(ViewBag.InitialMatches)');
-            } else {
+
+<script>
+			if (@(ViewBag.ShouldInitialize ? "true" : "false"))
+		{
+			if (!localStorage.getItem('standings') || !localStorage.getItem('matches')) {
+				localStorage.setItem('standings', '@Html.Raw(ViewBag.InitialStandings)');
+				localStorage.setItem('matches', '@Html.Raw(ViewBag.InitialMatches)');
+			} else {
 				console.log("girdi")
-                const initialMatches = JSON.parse('@Html.Raw(ViewBag.InitialMatches)');
-                const storedMatches = JSON.parse(localStorage.getItem('matches'));
+				const initialMatches = JSON.parse('@Html.Raw(ViewBag.InitialMatches)');
+				const storedMatches = JSON.parse(localStorage.getItem('matches'));
 				//console.log(initialMatches)
 				//console.log(storedMatches)
 				let changedMatches = [];
 
-						storedMatches.forEach(weekMatch => {
-	   weekMatch.matches.forEach(storedMatch => {
-		   const initialMatch = initialMatches.flatMap(week => week.Matches).find(match =>
+					
+	  storedMatches.forEach(storedMatch => {
+		   const initialMatch = initialMatches.find(match =>
 			   match.MatchId === storedMatch.matchId
 		   );
 		  // console.log(initialMatch)
@@ -114,12 +113,12 @@
 			   storedMatch.homeScore = initialMatch.HomeScore;
 			   storedMatch.awayScore = initialMatch.AwayScore;
 
-				
+
 		   }
 	   });
-	});
+	
 				localStorage.setItem('changedMatches', JSON.stringify(changedMatches));
-                localStorage.setItem('matches', JSON.stringify(storedMatches));
+				localStorage.setItem('matches', JSON.stringify(storedMatches));
 						const currentStandings = JSON.parse(localStorage.getItem('currentStandings') || '[]');
 
 						const formData = new FormData();
@@ -172,76 +171,7 @@
 			// Hata durumunda kullanıcıya bilgi ver
 			alert('Bir hata oluştu: ' + error.message);
 		});
-            }
-        }
-
-	// Standings tablosunu güncelle
-	function updateStandingsTable() {
-			const standings = JSON.parse(localStorage.getItem('standings')).map(item => {
-	   const convertedItem = {};
-	   for (const key in item) {
-		   const lowercaseKey = key.charAt(0).toLowerCase() + key.slice(1);
-		   convertedItem[lowercaseKey] = item[key];
-	   }
-	   return convertedItem;
-	});;
-		const tbody = document.getElementById('standingsTableBody');
-		tbody.innerHTML = '';
-		console.log(standings[0])
-		standings.forEach((team, index) => {
-			let rowColor = '';
-			if (index === 0) rowColor = 'bg-green-300 text-black';
-			else if (index === 1) rowColor = 'bg-green-100 text-black';
-			else if (index === 2) rowColor = 'bg-blue-200 text-black';
-			else if (index === 3) rowColor = 'bg-yellow-200 text-black';
-			else if (index >= standings.length - 4) rowColor = 'bg-red-200 text-black';
-
-			const row = `
-				<tr class="${rowColor} hover:opacity-90 transition duration-200">
-					<td class="px-2 py-0.5 text-xs text-sm font-medium">
-						<div class="flex items-center space-x-1">
-							<span>${getTrendIcon(team.trendDirection)}</span>
-							<span>${index + 1}</span>
-						</div>
-					</td>
-					<td class="px-2 py-0.5 text-xs">
-						<div class="flex items-center">
-							<div class="flex-shrink-0 h-10 w-10 mr-3">
-								<img class="h-10 w-10 rounded-full object-cover" src="${team.teamLogo}" alt="${team.team} Logo">
-							</div>
-							<div class="text-sm font-medium text-gray-900">${team.team}</div>
-							${team.reductedPoints !== 0 ? `<div class="text-xs text-gray-500 mt-1">(${team.reductedPoints} puan)</div>` : ''}
-						</div>
-					</td>
-					<td class="px-2 py-0.5 text-xs text-center text-sm text-gray-500">${team.played}</td>
-					<td class="px-2 py-0.5 text-xs text-center text-sm text-green-600">${team.won}</td>
-					<td class="px-2 py-0.5 text-xs text-center text-sm text-yellow-600">${team.drawn}</td>
-					<td class="px-2 py-0.5 text-xs text-center text-sm text-red-600">${team.lost}</td>
-					<td class="px-2 py-0.5 text-xs text-center text-sm text-blue-600">${team.goalsFor}</td>
-					<td class="px-2 py-0.5 text-xs text-center text-sm text-red-600">${team.goalsAgainst}</td>
-					<td class="px-2 py-0.5 text-xs text-center text-sm ${team.goalDifference >= 0 ? 'text-green-600' : 'text-red-600'}">${team.goalDifference}</td>
-					<td class="px-2 py-0.5 text-xs text-center text-sm font-semibold text-gray-900">${team.points}</td>
-				</tr>
-			`;
-			tbody.innerHTML += row;
-		});
-	}
-
-	function getTrendIcon(trend) {
-		switch(trend) {
-			case 0: return '<span class="text-green-600">↑</span>';
-			case 1: return '<span class="text-red-600">↓</span>';
-			default: return '<span class="text-gray-500">→</span>';
+			}
 		}
-	}
-
-
-
-</script>
-<script>
-	document.addEventListener('DOMContentLoaded', function() {
-		console.log("updated");
-		updateStandingsTable();
-
-	});
-</script>
+	</script>
+<script src="/js/site.js"></script>

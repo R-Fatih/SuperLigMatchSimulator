@@ -4,19 +4,20 @@ namespace SuperLigMatchSimulator.Helpers
 {
     public class WeekHelper
     {
-        public static string GetByeTeamOfWeek(IList<Standing> standings,WeekMatch lastMatches)
+        public static string GetByeTeamOfWeek(IList<Standing> standings,Match lastMatches)
         {
             var allTeams = standings.Select(x => x.Team).Distinct().ToList();
-            var byeTeamOnThisWeek = allTeams.Except(lastMatches.Matches.Select(x => x.HomeTeam).Union(lastMatches.Matches.Select(x => x.AwayTeam))).FirstOrDefault();
+            var byeTeamOnThisWeek = allTeams.Except(new[] { lastMatches.HomeTeam, lastMatches.AwayTeam }).FirstOrDefault();
             return byeTeamOnThisWeek;
         }
-        public static string GetByeTeamOfWeek(IList<WeekMatch> weekMatches, WeekMatch lastMatches)
+        public static string GetByeTeamOfWeek(IList<Match> weekMatches, Match lastMatches)
         {
 
-            var allTeams = weekMatches.SelectMany(wm => wm.Matches)
+            var allTeams = weekMatches
                                       .SelectMany(m => new[] { m.HomeTeam, m.AwayTeam })
                                       .Distinct()
-                                      .ToList(); var byeTeamOnThisWeek = allTeams.Except(lastMatches.Matches.Select(x => x.HomeTeam).Union(lastMatches.Matches.Select(x => x.AwayTeam))).FirstOrDefault();
+                                      .ToList();
+            var byeTeamOnThisWeek = allTeams.Except(new[] { lastMatches.HomeTeam, lastMatches.AwayTeam }).FirstOrDefault();
             return byeTeamOnThisWeek;
         }
     }

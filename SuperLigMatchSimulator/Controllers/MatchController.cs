@@ -8,13 +8,13 @@ namespace SuperLigMatchSimulator.Controllers
     public class MatchController : Controller
     {
         private const int TEAM_COUNT = 19;
-        private const string url = "https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/matchesFullScoreV2.json";
+        private const string url = "https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/matchesFullScoreV3.json";
         public async Task<IActionResult> Index(bool isFirst = true)
         {
             if (isFirst)
             {
                 var client = new HttpClient();
-                var json = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
+                var json = await client.GetFromJsonAsync<IList<Match>>(url);
 
                 var standings =await  StandingsHelper.StandingsCalculator(json, null);
                 
@@ -23,7 +23,7 @@ namespace SuperLigMatchSimulator.Controllers
                 ViewBag.InitialStandings = JsonSerializer.Serialize(standings);
                 ViewBag.InitialMatches = JsonSerializer.Serialize(json);
 
-                var findClosestMatchWeekByDate = json.FirstOrDefault(x => x.Matches.Any(m => m.MatchDate > DateTime.UtcNow&&m.IsFinished==false));
+                var findClosestMatchWeekByDate = json.FirstOrDefault((m => m.MatchDate > DateTime.UtcNow&&m.IsFinished==false));
                 var lastMatches = json.FirstOrDefault(x => x.Week == findClosestMatchWeekByDate.Week);
             var byeTeamOnThisWeek=  WeekHelper.GetByeTeamOfWeek(standings, lastMatches);
 
@@ -36,16 +36,16 @@ namespace SuperLigMatchSimulator.Controllers
         [HttpPost]
         public async Task<IActionResult> GetWeekMatches(string week, [FromForm] string allMatches)
         {
-            IList<WeekMatch> existingMatches;
+            IList<Match> existingMatches;
             
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
-                existingMatches = JsonSerializer.Deserialize<IList<WeekMatch>>(allMatches, options);
+                existingMatches = JsonSerializer.Deserialize<IList<Match>>(allMatches, options);
             
-            var lastMatches = existingMatches.FirstOrDefault(x => x.Week == week);
-            var byeTeamOnThisWeek = WeekHelper.GetByeTeamOfWeek(existingMatches, lastMatches);
+            var lastMatches = existingMatches.Where(x => x.Week ==Convert.ToInt32( week));
+            var byeTeamOnThisWeek = WeekHelper.GetByeTeamOfWeek(existingMatches, lastMatches.FirstOrDefault());
 
             TempData["ByeTeam"] = byeTeamOnThisWeek;
             var result = new
@@ -62,7 +62,7 @@ namespace SuperLigMatchSimulator.Controllers
             try
             {
                 // JSON string'i List<WeekMatch>'e dönüştür
-                IList<WeekMatch> existingMatches;
+                IList<Match> existingMatches;
                 IList<CurrentStanding> currentST=new List<CurrentStanding>();
                 try
                 {
@@ -70,7 +70,7 @@ namespace SuperLigMatchSimulator.Controllers
                     {
                         PropertyNameCaseInsensitive = true
                     };
-                    existingMatches = JsonSerializer.Deserialize<IList<WeekMatch>>(allMatches, options);
+                    existingMatches = JsonSerializer.Deserialize<IList<Match>>(allMatches, options);
                     currentST = JsonSerializer.Deserialize<IList<CurrentStanding>>(currentStandings, options);
                 }
                 catch (JsonException ex)
@@ -78,31 +78,29 @@ namespace SuperLigMatchSimulator.Controllers
                     Console.WriteLine($"JSON Deserialize Error: {ex.Message}");
                     // JSON parse edilemezse API'den al
                     var client = new HttpClient();
-                    existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
+                    existingMatches = await client.GetFromJsonAsync<IList<Match>>(url);
 
                 }
 
                 if (existingMatches == null)
                 {
                     var client = new HttpClient();
-                    existingMatches = await client.GetFromJsonAsync<IList<WeekMatch>>(url);
+                    existingMatches = await client.GetFromJsonAsync<IList<Match>>(url);
                 }
 
-                var weekMatch = existingMatches.FirstOrDefault(x => x.Matches.Any(m => m.MatchId == match.MatchId));
+                var weekMatch = existingMatches.FirstOrDefault((m => m.MatchId == match.MatchId));
                 if (weekMatch != null)
                 {
-                    var matchIndex = weekMatch.Matches.FindIndex(m => m.MatchId == match.MatchId);
-                    if (matchIndex != -1)
-                    {
-                        weekMatch.Matches[matchIndex].HomeScore = match.HomeScore;
-                        weekMatch.Matches[matchIndex].AwayScore = match.AwayScore;
+                    
+                        weekMatch.HomeScore = match.HomeScore;
+                        weekMatch.AwayScore = match.AwayScore;
 
                         var weekIndex = existingMatches.ToList().FindIndex(w => w.Week == weekMatch.Week);
                         if (weekIndex != -1)
                         {
-                            existingMatches[weekIndex] = weekMatch;
+                        //    existingMatches[weekIndex] = weekMatch;
                         }
-                    }
+                    
                 }
 
                 var standings =await  StandingsHelper.StandingsCalculator(existingMatches, currentST);
@@ -125,7 +123,7 @@ namespace SuperLigMatchSimulator.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateStandings([FromForm] string allMatches, [FromForm] string currentStandings)
         {
-            IList<WeekMatch> existingMatches=new List<WeekMatch>();
+            IList<Match> existingMatches=new List<Match>();
             IList<CurrentStanding> currentST = new List<CurrentStanding>();
             try
             {
@@ -133,7 +131,7 @@ namespace SuperLigMatchSimulator.Controllers
                 {
                     PropertyNameCaseInsensitive = true
                 };
-                existingMatches = JsonSerializer.Deserialize<IList<WeekMatch>>(allMatches, options);
+                existingMatches = JsonSerializer.Deserialize<IList<Match>>(allMatches, options);
                 currentST = JsonSerializer.Deserialize<IList<CurrentStanding>>(currentStandings, options);
             }
             catch (JsonException ex)
@@ -152,6 +150,20 @@ namespace SuperLigMatchSimulator.Controllers
                 matches = existingMatches
             };
 
+            return Json(result);
+        }
+
+
+        public async Task<IActionResult> ResetAllPredictions()
+        {
+            var client = new HttpClient();
+            var json = await client.GetFromJsonAsync<IList<Match>>(url);
+            var standings = await StandingsHelper.StandingsCalculator(json, null);
+            var result = new
+            {
+                standings = standings,
+                matches = json
+            };
             return Json(result);
         }
     }

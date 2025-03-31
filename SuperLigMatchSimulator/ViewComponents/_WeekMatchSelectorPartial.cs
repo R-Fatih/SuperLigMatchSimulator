@@ -5,7 +5,7 @@ namespace SuperLigMatchSimulator.ViewComponents
 {
     public class _WeekMatchSelectorPartial:ViewComponent
     {
-        public IViewComponentResult Invoke(WeekMatch match)
+        public IViewComponentResult Invoke(Match match)
         {
 
             return View(match);

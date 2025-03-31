@@ -1,0 +1,334 @@
+﻿				function updateScore(matchId, team, change) {
+		const homeScoreElement = document.getElementById(`homeScore-${matchId}`);
+		const awayScoreElement = document.getElementById(`awayScore-${matchId}`);
+		const hiddenHomeScore = document.getElementById(`hiddenHomeScore-${matchId}`);
+		const hiddenAwayScore = document.getElementById(`hiddenAwayScore-${matchId}`);
+		const form = document.getElementById(`predictionForm-${matchId}`);
+		const refreshDiv=document.getElementById(`RefreshDiv-${matchId}`);
+		const refreshButton=document.getElementById(`RefreshButton-${matchId}`);
+
+		// Azaltma butonlarını seç
+const homeMinusBtn = document.getElementById(`homeMinus-${matchId}`);
+const awayMinusBtn = document.getElementById(`awayMinus-${matchId}`);
+		console.log("\\"+homeScoreElement.textContent+"\\");
+
+		if(change!=null){
+
+		if (team === 'home') {
+			let newScore = parseInt(homeScoreElement.textContent) + change;
+				
+			if (newScore >= 0) {
+				homeScoreElement.textContent = newScore;
+				hiddenHomeScore.value = newScore;
+
+				// Home azaltma butonu durumunu güncelle
+				if (newScore < 1) {
+					homeMinusBtn.disabled = true;
+					homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+				} else {
+					homeMinusBtn.disabled = false;
+					homeMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+				}
+			}
+			if(homeScoreElement.textContent==" "||homeScoreElement.textContent=="null"||homeScoreElement.textContent==null||homeScoreElement.textContent=="") {
+				homeScoreElement.textContent=0;
+				hiddenHomeScore.value = 0;
+				awayScoreElement.textContent=0;
+				hiddenAwayScore.value = 0;
+				
+				// Her iki azaltma butonunu devre dışı bırak
+				homeMinusBtn.disabled = true;
+				homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+				awayMinusBtn.disabled = true;
+				awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+			}
+			refreshDiv.style.visibility = "visible";
+				refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
+				refreshButton.disabled=false;
+		} else {
+			let newScore = parseInt(awayScoreElement.textContent) + change;
+				
+			if (newScore >= 0) {
+				awayScoreElement.textContent = newScore;
+				hiddenAwayScore.value = newScore;
+
+				// Away azaltma butonu durumunu güncelle
+				if (newScore < 1) {
+					awayMinusBtn.disabled = true;
+					awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+				} else {
+					awayMinusBtn.disabled = false;
+					awayMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+				}
+			}
+			if(awayScoreElement.textContent==""||awayScoreElement.textContent=="null"||awayScoreElement.textContent==null) {
+				awayScoreElement.textContent=0;
+				hiddenAwayScore.value = 0;
+				homeScoreElement.textContent=0;
+				hiddenHomeScore.value = 0;
+
+				// Her iki azaltma butonunu devre dışı bırak
+				homeMinusBtn.disabled = true;
+				homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+				awayMinusBtn.disabled = true;
+				awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+			}
+			refreshDiv.style.visibility = "visible";
+				refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
+				refreshButton.disabled=false;
+		}
+		
+		}else{
+			homeScoreElement.textContent="";
+			awayScoreElement.textContent="";
+			hiddenHomeScore.value = null;
+			hiddenAwayScore.value =null;
+		}
+		const formData = new FormData(form);
+
+		// localStorage'dan mevcut maçları al
+		const currentMatches = JSON.parse(localStorage.getItem('matches') || '[]');
+				const currentStandings = JSON.parse(localStorage.getItem('currentStandings') || '[]');
+		console.log('Sending matches:', currentMatches);
+
+		// FormData'ya matches'i ekle
+		formData.append('allMatches', JSON.stringify(currentMatches));
+			formData.append('currentStandings', JSON.stringify(currentStandings));
+
+		fetch('/Match/SavePrediction', {
+			method: 'POST',
+			body: formData
+		})
+		.then(response => {
+			if (!response.ok) {
+				return response.json().then(err => {
+					console.error('Server error:', err);
+					throw new Error(err.details || 'Server error occurred');
+				});
+			}
+			return response.json();
+		})
+		.then(data => {
+			console.log('Received data:', data);
+			localStorage.setItem('standings', JSON.stringify(data.standings));
+			localStorage.setItem('matches', JSON.stringify(data.matches));
+			updateStandingsTable();
+			updateMatchesDisplay();
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			// Hata durumunda kullanıcıya bilgi ver
+			alert('Bir hata oluştu: ' + error.message);
+		});
+	
+	}
+
+	function updateMatchesDisplay() {
+		const matches = JSON.parse(localStorage.getItem('matches'));
+		const currentWeek = '@Model.Week';
+
+		const weekMatches = matches.find(w => w.Week === currentWeek);
+		if (weekMatches) {
+			weekMatches.Matches.forEach(match => {
+				const homeScoreElement = document.getElementById(`homeScore-${match.MatchId}`);
+				const awayScoreElement = document.getElementById(`awayScore-${match.MatchId}`);
+				const hiddenHomeScore = document.getElementById(`hiddenHomeScore-${match.MatchId}`);
+				const hiddenAwayScore = document.getElementById(`hiddenAwayScore-${match.MatchId}`);
+
+				// Azaltma butonlarını seç
+				const homeMinusBtn = homeScoreElement.parentElement.previousElementSibling.querySelector('button:first-child');
+				const awayMinusBtn = awayScoreElement.parentElement.nextElementSibling.querySelector('button:first-child');
+
+				if (homeScoreElement && awayScoreElement) {
+					homeScoreElement.textContent = match.HomeScore ?? '';
+					awayScoreElement.textContent = match.AwayScore ?? '';
+
+					// Butonların durumunu güncelle
+					if (match.HomeScore == null || match.HomeScore < 1) {
+						homeMinusBtn.disabled = true;
+						homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+					} else {
+						homeMinusBtn.disabled = false;
+						homeMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+					}
+
+					if (match.AwayScore == null || match.AwayScore < 1) {
+						awayMinusBtn.disabled = true;
+						awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+					} else {
+						awayMinusBtn.disabled = false;
+						awayMinusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+					}
+				}
+				if (hiddenHomeScore && hiddenAwayScore) {
+					hiddenHomeScore.value = match.HomeScore ?? '';
+					hiddenAwayScore.value = match.AwayScore ?? '';
+				}
+			});
+		}
+	}
+
+	function GetWeekMatches(week) {
+	const currentMatches = JSON.parse(localStorage.getItem('matches') || '[]');
+				const currentStandings = JSON.parse(localStorage.getItem('currentStandings') || '[]');
+	const currentWeekSpan=document.getElementById('currentWeek');
+			console.log('Sending matches:', currentMatches);
+
+			// FormData'ya matches'i ekle
+					const formData = new FormData();
+
+			formData.append('allMatches', JSON.stringify(currentMatches));
+			formData.append('week',week)
+			fetch("/Match/GetWeekMatches", {
+				method: 'POST',
+				body: formData
+			}).then(response => {
+				if (!response.ok) {
+					return response.json().then(err => {
+						console.error('Server error:', err);
+						throw new Error(err.details || 'Server error occurred');
+					});
+				}
+				return response.json();
+			}).then(data => {
+				
+				const matchDiv=document.getElementById('matches');
+				matchDiv.innerHTML="";
+				data.matches.forEach((team,index)=>{
+					team.homeScore = team.homeScore == null ? "" : team.homeScore;
+	team.awayScore = team.awayScore == null ? "" : team.awayScore;
+		
+
+
+
+					const row = `
+<div class="bg-white rounded shadow-sm p-2 hover:shadow-md transition-shadow">
+    <div class="flex items-center justify-between min-w-full">
+        <!-- Home Team -->
+        <div class="flex flex-col items-center w-1/3 space-y-2">
+            <img src="${team.homeLogo}" alt="${team.homeTeam}" class="w-8 h-8 object-contain" />
+            <div class="flex space-x-1">
+                <button id="homeMinus-${team.matchId}" onclick="updateScore('${team.matchId}', 'home', -1)"
+                    ${team.homeScore == null || team.homeScore < 1 || team.isFinished ? "disabled" : ""}
+                    class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs ${team.homeScore == null || team.homeScore < 1 || team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
+                    -
+                </button>
+                <button onclick="updateScore('${team.matchId}', 'home', 1)"
+                    ${team.isFinished ? "disabled" : ""}
+                    class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs ${team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
+                    +
+                </button>
+            </div>
+        </div>
+
+        <!-- Score Display -->
+        <div class="flex flex-col items-center justify-center w-1/3">
+            <div class="flex items-center space-x-4">
+                <span id="homeScore-${team.matchId}" class="text-lg font-bold min-w-[20px] text-center">${team.homeScore}</span>
+                <span class="text-lg font-bold text-gray-400">-</span>
+                <span id="awayScore-${team.matchId}" class="text-lg font-bold min-w-[20px] text-center">${team.awayScore}</span>
+            </div>
+            ${team.isFinished == true ? "" :
+            `<div id="RefreshDiv-${team.matchId}" style="visibility:${team.homeScore === "" ? "hidden" : "visible"};" 
+                class="mt-1">
+                <button id="RefreshButton-${team.matchId}" onclick="ResetMatch('${team.matchId}')" 
+                    class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>`}
+        </div>
+
+        <!-- Away Team -->
+        <div class="flex flex-col items-center w-1/3 space-y-2">
+            <img src="${team.awayLogo}" alt="${team.awayTeam}" class="w-8 h-8 object-contain" />
+            <div class="flex space-x-1">
+                <button id="awayMinus-${team.matchId}" onclick="updateScore('${team.matchId}', 'away', -1)"
+                    ${team.awayScore == null || team.awayScore < 1 || team.isFinished ? "disabled" : ""}
+                    class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors text-xs ${team.awayScore == null || team.awayScore < 1 || team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
+                    -
+                </button>
+                <button onclick="updateScore('${team.matchId}', 'away', 1)"
+                    ${team.isFinished ? "disabled" : ""}
+                    class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs ${team.isFinished ? "opacity-50 cursor-not-allowed" : ""}">
+                    +
+                </button>
+            </div>
+        </div >
+    </div >
+
+	<form id="predictionForm-${team.matchId}" asp-action="SavePrediction" asp-controller="Match" method="post">
+		<input type="hidden" name="MatchId" value="${team.matchId}" />
+		<input type="hidden" id="hiddenHomeScore-${team.matchId}" name="HomeScore" value="${team.homeScore}" />
+		<input type="hidden" id="hiddenAwayScore-${team.matchId}" name="AwayScore" value="${team.awayScore}" />
+		<input type="hidden" name="HomeTeam" value="${team.homeTeam}" />
+		<input type="hidden" name="AwayTeam" value="${team.awayTeam}" />
+		<input type="hidden" name="HomeLogo" value="${team.homeLogo}" />
+		<input type="hidden" name="AwayLogo" value="${team.awayLogo}" />
+		<input type="hidden" name="Week" value="${team.week}" />
+	</form>
+</div >`;
+		matchDiv.innerHTML+=row;
+		currentWeekSpan.textContent="Week "+week;
+				});
+												matchDiv.innerHTML+=`<div class="text-lg font-min-w-[10px] text-center byeTeam"><strong>Haftayı bay geçen takım:</strong> <span>${data.byeTeam}</span></div>`
+				}).catch(error => {
+				console.error('Error:', error);
+				// Hata durumunda kullanıcıya bilgi ver
+				alert('Bir hata oluştu: ' + error.message);
+			});
+		}
+
+
+						document.addEventListener('DOMContentLoaded', function() {
+							console.log("updated");
+							const currentWeek = parseInt(document.getElementById('currentWeek').textContent.split(' ')[1]);
+
+							GetWeekMatches(currentWeek);
+			const standings = JSON.parse(localStorage.getItem('standings')||[]);
+			if(standings!=[]){
+	const simplifiedStandings = standings.map((team, index) => ({
+	   teamName: team.team,
+	   rank: index + 1
+	}));
+
+	const simplifiedStandingsJson = JSON.stringify(simplifiedStandings);
+
+		localStorage.setItem('currentStandings', simplifiedStandingsJson);
+		}
+	});
+
+
+	function ResetMatch(matchId) {
+		console.log("resetting match", matchId);
+updateScore(matchId, null, null);	
+		const refreshDiv=document.getElementById(`RefreshDiv-${ matchId }`);
+		const homeMinusBtn = document.getElementById(`homeMinus-${ matchId }`);
+		const awayMinusBtn = document.getElementById(`awayMinus-${ matchId }`);
+		awayMinusBtn.disabled = true;
+		awayMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+			homeMinusBtn.disabled = true;
+		homeMinusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+	refreshDiv.style.visibility = "hidden";
+	}
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+     
+
+            
+            // Update the next week button's onclick event
+            const nextWeekBtn = document.getElementById('nextWeek');
+            nextWeekBtn.onclick = function() {
+                const currentWeek = parseInt(document.getElementById('currentWeek').textContent.split(' ')[1]);
+                GetWeekMatches(currentWeek + 1);
+            };
+			const prevWeekBtn = document.getElementById('prevWeek');
+			prevWeekBtn.onclick = function() {
+				const currentWeek = parseInt(document.getElementById('currentWeek').textContent.split(' ')[1]);
+				GetWeekMatches(currentWeek - 1);
+			};
+
+        });
+	

@@ -6,7 +6,7 @@ namespace SuperLigMatchSimulator.Helpers
     {
         private const string url2 = "https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/reductedPoints.json";
 
-        public static async Task< IList<Standing>> StandingsCalculator(IList<WeekMatch> json, IList<CurrentStanding>? currentStandings)
+        public static async Task< IList<Standing>> StandingsCalculator(IList<Match> json, IList<CurrentStanding>? currentStandings)
         {        
             Dictionary<string, int> reductedPoints;
             var client = new HttpClient();
@@ -14,7 +14,7 @@ namespace SuperLigMatchSimulator.Helpers
             reductedPoints = await client.GetFromJsonAsync<Dictionary<string, int>>(url2);
 
             var standindgs = new List<Standing>();
-            var allMatches = json.SelectMany(x => x.Matches).ToList();
+            var allMatches = json.ToList();
 
             var homeStandings = allMatches.GroupBy(x => x.HomeTeam).Select(y => new Standing
             {
