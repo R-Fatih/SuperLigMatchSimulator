@@ -9,7 +9,7 @@ namespace SuperLigMatchSimulator.Controllers
     {
         private const int TEAM_COUNT = 19;
         private const string url = "https://raw.githubusercontent.com/R-Fatih/SuperLig2024-25ResultSimulator/refs/heads/main/matchesFullScoreV3.json";
-        public async Task<IActionResult> Index(bool isFirst = true)
+        public async Task<IActionResult> Index( bool isFirst = true)
         {
             if (isFirst)
             {
@@ -34,7 +34,7 @@ namespace SuperLigMatchSimulator.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetWeekMatches(string week, [FromForm] string allMatches)
+        public async Task<IActionResult> GetWeekMatches(string? team,string week, [FromForm] string allMatches)
         {
             IList<Match> existingMatches;
             
@@ -43,7 +43,12 @@ namespace SuperLigMatchSimulator.Controllers
                     PropertyNameCaseInsensitive = true
                 };
                 existingMatches = JsonSerializer.Deserialize<IList<Match>>(allMatches, options);
-            
+
+
+            if (team != "null")
+                return Json(new { matches = existingMatches.Where(x => (x.HomeTeam == team || x.AwayTeam == team)&&x.IsFinished==false) });
+
+
             var lastMatches = existingMatches.Where(x => x.Week ==Convert.ToInt32( week));
             var byeTeamOnThisWeek = WeekHelper.GetByeTeamOfWeek(existingMatches, lastMatches.FirstOrDefault());
 

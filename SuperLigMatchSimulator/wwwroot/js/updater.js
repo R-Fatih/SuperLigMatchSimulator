@@ -175,10 +175,13 @@ const awayMinusBtn = document.getElementById(`awayMinus-${matchId}`);
 			console.log('Sending matches:', currentMatches);
 
 			// FormData'ya matches'i ekle
-					const formData = new FormData();
-
+		const formData = new FormData();
+		const queryString = window.location.search;
+		const urlParams = new URLSearchParams(queryString);
+		const team = urlParams.get('team')
 			formData.append('allMatches', JSON.stringify(currentMatches));
-			formData.append('week',week)
+		formData.append('week', week)
+		formData.append('team', team)
 			fetch("/Match/GetWeekMatches", {
 				method: 'POST',
 				body: formData
@@ -276,7 +279,7 @@ const awayMinusBtn = document.getElementById(`awayMinus-${matchId}`);
 				}).catch(error => {
 				console.error('Error:', error);
 				// Hata durumunda kullanıcıya bilgi ver
-				alert('Bir hata oluştu: ' + error.message);
+					alert('Bu müsabaka ' + currentWeekSpan.textContent+' haftadır');
 			});
 		}
 

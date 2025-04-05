@@ -35,7 +35,7 @@
 							<div class="flex-shrink-0 h-10 w-10 mr-3">
 								<img class="h-10 w-10 rounded-full object-cover" src="${team.teamLogo}" alt="${team.team} Logo">
 							</div>
-							<div class="text-sm font-medium text-gray-900">${team.team}</div>
+							<div class="text-sm font-medium text-gray-900"><a href="/?team=${team.team}">${team.team}</a></div>
 							${team.reductedPoints !== 0 ? `<div class="text-xs text-gray-500 mt-1">(${team.reductedPoints} puan)</div>` : ''}
 						</div>
 					</td>

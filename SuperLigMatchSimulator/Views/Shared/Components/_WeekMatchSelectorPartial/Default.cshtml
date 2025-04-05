@@ -1,16 +1,33 @@
 ﻿@using SuperLigMatchSimulator.Classes
+@using System.Web
 @model Match
 
 <div class="container mx-auto p-2">
 	<div class="flex items-center justify-center space-x-4 mb-4">
-		<button id="prevWeek" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">←</button>
-		<span id="currentWeek" class="text-xl font-bold text-gray-800">Week @Model.Week</span>
-		<button id="nextWeek" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">→</button>
+		@if (string.IsNullOrEmpty(HttpUtility.UrlDecode(Context.Request.Query["team"].FirstOrDefault())))
+		{
+
+
+			<button id="prevWeek" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">←</button>
+			<span id="currentWeek" class="text-xl font-bold text-gray-800">Week @Model.Week</span>
+			<button id="nextWeek" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">→</button>
+
+		}
+		else
+		{
+				<button id="prevWeek"  style="display:none" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">←</button>
+			<span id="currentWeek" style="display:none" class="text-xl font-bold text-gray-800">@Context.Request.Query["team"].FirstOrDefault()</span>
+			<span class="text-xl font-bold text-gray-800">@Context.Request.Query["team"].FirstOrDefault()</span>
+
+			<button id="nextWeek" style="display:none" class="text-xl text-gray-600 hover:text-gray-900 transition-colors">→</button>
+
+		}
 		<button onclick="resetAllPredictions()">
 			<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
 			</svg>
 		</button>
+		<a href="/Match/Index/"><img width="50" height="50" src="https://raw.githubusercontent.com/R-Fatih/fifadata/refs/heads/main/leagues_4/l68.png" /></a>
 	</div>
 
 	<div id="matches" class="grid grid-cols-1 gap-2 max-w-4xl mx-auto">
