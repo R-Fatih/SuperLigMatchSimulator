@@ -25,7 +25,7 @@ namespace SuperLigMatchSimulator.Controllers
 
                 var findClosestMatchWeekByDate = json.FirstOrDefault((m => m.MatchDate > DateTime.UtcNow&&m.IsFinished==false));
                 var lastMatches = json.FirstOrDefault(x => x.Week == findClosestMatchWeekByDate.Week);
-            var byeTeamOnThisWeek=  WeekHelper.GetByeTeamOfWeek(standings, lastMatches);
+            var byeTeamOnThisWeek=  WeekHelper.GetByeTeamOfWeek(json,standings);
 
                 TempData["ByeTeam"] = byeTeamOnThisWeek;
                 ViewBag.CurrentWeekMatches = lastMatches;
@@ -50,7 +50,8 @@ namespace SuperLigMatchSimulator.Controllers
 
 
             var lastMatches = existingMatches.Where(x => x.Week ==Convert.ToInt32( week));
-            var byeTeamOnThisWeek = WeekHelper.GetByeTeamOfWeek(existingMatches, lastMatches.FirstOrDefault());
+            var standings = await StandingsHelper.StandingsCalculator(existingMatches, null);
+            var byeTeamOnThisWeek = WeekHelper.GetByeTeamOfWeek(lastMatches.ToList(), standings);
 
             TempData["ByeTeam"] = byeTeamOnThisWeek;
             var result = new
